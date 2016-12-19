@@ -11,7 +11,6 @@
 #include<netdb.h>
 
 int port_connect(char *ip,int port,int nsec);
-void scan_r(char *ip,int s_port,int e_port,int *status);
 void print_res(int *list,int n);
 
 int main(int argc,const char * argv[])
@@ -56,7 +55,6 @@ void print_res(int *list,int n)
 int port_connect(char *ip,int port,int nsec)
 {
 	int flag, n, error;
-	//socklen_t len;
 	fd_set rset,wset;
 	struct timeval tval;
 
@@ -64,7 +62,6 @@ int port_connect(char *ip,int port,int nsec)
 	FD_ZERO(&rset);
 	tval.tv_sec = 1;
 	tval.tv_usec = 0;
-	//struct servent *sent;
 	
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	flag = fcntl(sockfd, F_GETFL, 0);
