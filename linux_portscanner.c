@@ -44,12 +44,12 @@ int main(int argc,const char * argv[])
 
 void print_res(int *list,int n)
 {
-	printf("Results:----------------\n");
+	printf("Results:\n----------------\n");
 	for (int i = 0; i < n; i++) {
 		printf("port: %d  open\n",list[i]);
 	}
 
-	printf("-------------------------\n");
+	printf("-----------------\n");
 }
 
 int port_connect(char *ip,int port,int nsec)
