@@ -1,5 +1,15 @@
 # Notes
 
+## header files
+
+- ### #include<sys/socket.h>
+
+  ​
+
+- ### #include<sys/select.h>
+
+- ### #include<sys/types.h>
+
 ## functions
 
 #### fd_set
