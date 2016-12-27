@@ -1,6 +1,16 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<sys/select.h>
+#include<netdb.h>
+#include<netinet/in.h>
+#include<unistd.h>
+#include<fcntl.h>
+#include<errno.h>
+
+#define nsec 100;
 
 struct Node{
 	char ip[20];
@@ -18,6 +28,8 @@ void PrintList(List L);
 void Add(char *str,List L);
 void Addport(char *str,char *ip,List L);
 void Unflodport(char *str,char *ip,List L);
+void Scan(List L);
+void port_connect(Position P);
 
 int main()
 {
@@ -36,10 +48,93 @@ int main()
 	}
 
 	Target = Target->Next;
+	Scan(Target);
 	PrintList(Target);
 
 	fclose(fpi);fclose(fpo);
 	return 0;
+}
+
+void Scan(List L){
+	Position P;
+	P=L;
+	while(P != NULL){
+		printf("scaning: IP:%s\tport:%d\n",P->ip,P->port);
+		port_connect(P);
+		printf("status:%d\n",P->status);
+		P = P->Next;
+	}
+	return;
+}
+
+void port_connect(Position P)
+{
+	int flag, n, error;
+	fd_set rset,wset;
+	struct timeval tval;
+
+	FD_ZERO(&wset);
+	FD_ZERO(&rset);
+	tval.tv_sec = 1;
+	tval.tv_usec = 0;
+	
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	flag = fcntl(sockfd, F_GETFL, 0);
+	fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
+
+	struct sockaddr_in address;
+	bzero(&address, sizeof(address));
+	address.sin_family = AF_INET;
+	inet_pton(AF_INET, P->ip, &address.sin_addr);
+	address.sin_port = htons(P->port);
+
+	error = 0;
+	if((n=connect(sockfd,(struct sockaddr *)&address, sizeof(address)))<0) {
+		if(errno != EINPROGRESS) {
+//			printf("connecting 1 error !\n");
+			P->status = -1;
+			return;
+		}
+		else if (n == 0) {
+	//This case may happen on localhost
+//			printf("connecting 1 success !\n");
+			P->status = 0;
+			return;
+		}
+	}
+	FD_SET(sockfd, &rset);
+	wset=rset;
+	
+	//Do whatever we want while the connect is taking place
+	int rst=select(sockfd+1, &rset, &wset, NULL, &tval);
+
+	switch (rst) {
+		case -1:
+//			perror("Select error");
+		       	exit(-1);
+		case 0:
+			close(sockfd);
+//			printf("Time out !\n");
+			break;
+		default:
+			if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
+				int error;
+				socklen_t len = sizeof(error);
+				if(getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+//					printf("getsockopt fail,connected fail\n");
+					P->status = -1;
+					return ;
+				}
+				if (error == 0){
+//					printf("port %d is open\n",port);
+					P->status = 0;
+					return;
+				}
+			}
+			close(sockfd);
+	}
+	P->status = -1;
+	return;
 }
 
 void Error(char *str){
@@ -122,7 +217,7 @@ void Insert(char *ip,int port,Position P){
 
 void PrintList(List L){
 	while(L != NULL){
-		printf("IP:%s\tport:%d\n",L->ip,L->port);
+		printf("IP:%s\tport:%d\tstatus:\n",L->ip,L->port,L->status);
 		L = L->Next;
 	}
 }
