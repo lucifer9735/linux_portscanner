@@ -9,6 +9,7 @@
 #include<unistd.h>
 #include<fcntl.h>
 #include<errno.h>
+#include<arpa/inet.h>
 
 #define nsec 100;
 
@@ -37,9 +38,11 @@ int main()
 	fpi = fopen("scanlist","r");
 	fpo = fopen("report","w+");
 
-	Position Target;
+	Position Target,Tail;
 	Target = malloc(sizeof(PtrtoNode));
-	Target->Next = NULL;
+	Tail = malloc(sizeof(PtrtoNode));
+	Tail = NULL;
+	Target->Next = Tail;
 
 	char str[80];
 	while(fgets(str,80,fpi) != NULL){
@@ -216,8 +219,10 @@ void Insert(char *ip,int port,Position P){
 }
 
 void PrintList(List L){
+	unsigned int i = 0;
 	while(L != NULL){
-		printf("IP:%s\tport:%d\tstatus:\n",L->ip,L->port,L->status);
+		i++;
+		printf("No.%d\tIP:%s\tport:%d\n",i,L->ip,L->port);
 		L = L->Next;
 	}
 }
