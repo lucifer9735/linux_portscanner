@@ -10,10 +10,12 @@
 #include<errno.h>
 #include<netdb.h>
 
-int port_connect(char *ip,int port,int nsec);
+#define nsec 100;
+
+int port_connect(char *ip,int port);
 void print_res(int *list,int n);
 
-int main(int argc,const char * argv[])
+int remain(int argc,const char * argv[])
 {
 	if (argc < 4) {
 		printf("ip sport eport [thread]\n");
@@ -31,7 +33,7 @@ int main(int argc,const char * argv[])
 	for (int i = s_port; i<= e_port; i++) {
 		printf("scaning port:%d \n",i);
 		int r = -1;
-		if ((r=port_connect(ip, i, 100)) == 0) {
+		if ((r=port_connect(ip, i)) == 0) {
 			open[count] = i;
 			count++;
 		}
@@ -40,7 +42,18 @@ int main(int argc,const char * argv[])
 	print_res(open,count);
 	
 	return 0;
-}	
+}
+
+int main(int argc,const char * argv[])
+{
+	char *ip = argv[1];
+	int port = atoi(argv[2]);
+	int r=-1;
+	if ((r=port_connect(ip,port)) == 0) {
+		printf("port: %d  open\n",port);
+	}
+	return 0;
+}
 
 void print_res(int *list,int n)
 {
@@ -52,7 +65,13 @@ void print_res(int *list,int n)
 	printf("-----------------\n");
 }
 
-int port_connect(char *ip,int port,int nsec)
+struct node{
+	char *ip;
+	int port;
+	struct node *next;
+};
+
+int port_connect(char *ip,int port)
 {
 	int flag, n, error;
 	fd_set rset,wset;
