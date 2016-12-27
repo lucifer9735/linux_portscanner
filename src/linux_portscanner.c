@@ -31,6 +31,7 @@ void Addport(char *str,char *ip,List L);
 void Unflodport(char *str,char *ip,List L);
 void Scan(List L);
 void port_connect(Position P);
+int ipcmp(char *ipa,char *ipb);
 
 int main()
 {
@@ -197,11 +198,32 @@ void Unflodport(char *str,char *ip,List L){
 	}
 }
 
+int ipcmp(char *ipa,char *ipb){
+	if(ipa == ipb) return 0;
+	else if(strchr(ipa,'.') != NULL){
+		int lena=strcspn(ipa,".");
+		int lenb=strcspn(ipb,".");
+		char tmpa[4],tmpb[4];
+		strncpy(tmpa,ipa,lena);
+		strncpy(tmpb,ipb,lenb);
+		tmpa[lena]='\0';
+		tmpb[lenb]='\0';
+		if(tmpa == tmpb){
+			char rea[12],reb[12];
+			strcpy(rea,strchr(ipa,'.')+1);
+			strcpy(reb,strchr(ipb,'.')+1);
+			ipcmp(rea,reb);
+		}
+		return atoi(tmpa)-atoi(tmpb);
+	}else return atoi(ipa)-atoi(ipb);
+}
+
 Position FindPrevious(char *ip,int port,List L){
 	Position P;
 	P = L;
-	while(P->Next != NULL && P->Next->ip <= ip && P->Next->port < port)
+	while(P->Next != NULL && ipcmp(P->Next->ip,ip) < 0)
 		P = P->Next;
+	if(ipcmp(P->Next->ip,ip) == 0)
 	return P;
 }
 
