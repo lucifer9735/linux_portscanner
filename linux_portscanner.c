@@ -10,8 +10,11 @@
 #include<fcntl.h>
 #include<errno.h>
 #include<arpa/inet.h>
+#include<pthread.h>
 
 #define nsec 100;
+
+#include"thread.c"
 
 struct Node{
 	char ip[20];
@@ -35,6 +38,8 @@ int ipcmp(char *ipa,char *ipb);
 
 int main()
 {
+	pthread_mutex_init(&target_list_lock,NULL);
+
 	FILE *fpi,*fpo;
 	fpi = fopen("scanlist","r");
 	fpo = fopen("report","w+");
@@ -52,7 +57,15 @@ int main()
 	}
 
 	Target = Target->Next;
-	Scan(Target);
+	Position P = (Position)malloc(sizeof(Position));
+	P = Target;
+	pool_init(10);
+	while(P != NULL){
+		add_task(port_connect,P);
+		P=P->Next;
+	}
+	pool_start();
+	pool_join();
 	PrintList(Target);
 
 	fclose(fpi);fclose(fpo);
@@ -223,7 +236,8 @@ Position FindPrevious(char *ip,int port,List L){
 	P = L;
 	while(P->Next != NULL && ipcmp(P->Next->ip,ip) < 0)
 		P = P->Next;
-	if(ipcmp(P->Next->ip,ip) == 0)
+	while(P->Next != NULL && ipcmp(P->Next->ip,ip) == 0 && P->Next->port < port)
+		P = P->Next;
 	return P;
 }
 
@@ -244,7 +258,9 @@ void PrintList(List L){
 	unsigned int i = 0;
 	while(L != NULL){
 		i++;
-		printf("No.%d\tIP:%s\tport:%d\n",i,L->ip,L->port);
+		printf("No.%d\tIP:%s\tport:%d\tstatus:",i,L->ip,L->port);
+		if(L->status == 0) printf("open\n");
+		else printf("close\n");
 		L = L->Next;
 	}
 }
