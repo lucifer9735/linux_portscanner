@@ -61,7 +61,7 @@ int main()
 	P = Target;
 	pool_init(50);
 	while(P != NULL){
-		add_task(port_connect,P);
+		add_task((void (*)(void *))port_connect,P);
 		P=P->Next;
 	}
 	pool_start();
@@ -86,7 +86,7 @@ void Scan(List L){
 
 void port_connect(Position P)
 {
-	int flag, n, error;
+	int flag, n;
 	fd_set rset,wset;
 	struct timeval tval;
 
@@ -100,12 +100,11 @@ void port_connect(Position P)
 	fcntl(sockfd, F_SETFL, flag | O_NONBLOCK);
 
 	struct sockaddr_in address;
-	bzero(&address, sizeof(address));
+	memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	inet_pton(AF_INET, P->ip, &address.sin_addr);
 	address.sin_port = htons(P->port);
 
-	error = 0;
 	if((n=connect(sockfd,(struct sockaddr *)&address, sizeof(address)))<0) {
 		if(errno != EINPROGRESS) {
 //			printf("connecting 1 error !\n");

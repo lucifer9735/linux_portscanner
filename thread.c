@@ -1,5 +1,5 @@
 typedef struct task_node {
-    void *(*function)(void *arg);
+    void (*function)(void *arg);
     void *arg;
     struct task_node *next;
 }task;
@@ -12,7 +12,7 @@ typedef struct {
     int waiting_task_num;
 }thread_pool;
 
-int add_task (void *(*function) (void *arg), void *arg);
+int add_task (void (*function) (void *arg), void *arg);
 int pool_join(void);
 void pool_init(int max_thread_num);
 void pool_start(void);
@@ -41,7 +41,7 @@ pool_start()
 }
 
 int
-add_task (void *(*function) (void *arg), void *arg)
+add_task (void (*function) (void *arg), void *arg)
 {
     task *new_task = (task *) malloc (sizeof (task));
     new_task->function = function;
