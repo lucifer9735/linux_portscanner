@@ -59,7 +59,7 @@ int main()
 	Target = Target->Next;
 	Position P = (Position)malloc(sizeof(Position));
 	P = Target;
-	pool_init(10);
+	pool_init(50);
 	while(P != NULL){
 		add_task(port_connect,P);
 		P=P->Next;
@@ -236,7 +236,7 @@ Position FindPrevious(char *ip,int port,List L){
 	P = L;
 	while(P->Next != NULL && ipcmp(P->Next->ip,ip) < 0)
 		P = P->Next;
-	while(P->Next != NULL && ipcmp(P->Next->ip,ip) == 0 && P->Next->port < port)
+	while(P->Next != NULL && ipcmp(P->Next->ip,ip) == 0 && P->Next->port <= port)
 		P = P->Next;
 	return P;
 }
@@ -257,10 +257,10 @@ void Insert(char *ip,int port,Position P){
 void PrintList(List L){
 	unsigned int i = 0;
 	while(L != NULL){
-		i++;
-		printf("No.%d\tIP:%s\tport:%d\tstatus:",i,L->ip,L->port);
-		if(L->status == 0) printf("open\n");
-		else printf("close\n");
+		if(L->status == 0){
+			i++;
+			printf("No.%d\tIP:%s\tport:%d\tstatus:open\n",i,L->ip,L->port);
+		}
 		L = L->Next;
 	}
 }
