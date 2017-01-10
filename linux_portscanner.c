@@ -220,7 +220,7 @@ int ipcmp(char *ipa,char *ipb){
 		strncpy(tmpb,ipb,lenb);
 		tmpa[lena]='\0';
 		tmpb[lenb]='\0';
-		if(tmpa == tmpb){
+		if(strcmp(tmpa,tmpb) == 0){
 			char rea[12],reb[12];
 			strcpy(rea,strchr(ipa,'.')+1);
 			strcpy(reb,strchr(ipb,'.')+1);
